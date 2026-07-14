@@ -30,8 +30,21 @@ class DailyRotatingHandler(logging.Handler):
             
             filepath = os.path.join(self.log_dir, self._get_filename())
             self.file_handler = logging.FileHandler(filepath, encoding='utf-8')
-            self.file_handler.setFormatter(self.formatter)
+            
+            # ИСПРАВЛЕНИЕ: Применяем форматтер только если он уже был установлен
+            if self.formatter:
+                self.file_handler.setFormatter(self.formatter)
+                
             self.current_date = today
+
+    def setFormatter(self, fmt):
+        """
+        ИСПРАВЛЕНИЕ: Переопределяем setFormatter, чтобы пробросить его 
+        во внутренний file_handler и в родительский класс
+        """
+        super().setFormatter(fmt)
+        if self.file_handler:
+            self.file_handler.setFormatter(fmt)
 
     def emit(self, record):
         self._check_rotation()

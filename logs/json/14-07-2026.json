@@ -1,4 +1,0 @@
-{"timestamp": "14-07-2026 12:40:17", "level": "INFO", "message": "Приложение FEDSFM Hybrid запущено.", "extra": null}
-{"timestamp": "14-07-2026 12:40:17", "level": "INFO", "message": "Используется тестовый контур: True", "extra": null}
-{"timestamp": "14-07-2026 12:40:17", "level": "WARN", "message": "Это тестовое предупреждение для проверки цветов и ротации.", "extra": null}
-{"timestamp": "14-07-2026 12:40:17", "level": "INFO", "message": "Получен ID каталога TE21", "extra": {"idXml": "123e4567-e89b-12d3-a456-426614174000", "size": "4.2MB"}}
