@@ -10,11 +10,15 @@ class AppSettings:
     download_dir: str = "downloads"
     schedule_time: str = "02:00"
     
+    # Настройки авторизации (ДОБАВЛЕНО)
+    username: str = ""
+    password: str = ""
+    
     # Настройки логирования
     log_dir: str = "logs"
-    log_filename_template: str = "{date}.log"  # Шаблон имени
-    log_date_format: str = "%d-%m-%Y"          # Формат даты в имени файла
-    log_time_format: str = "%Y-%m-%d %H:%M:%S" # Формат времени в самой записи
+    log_filename_template: str = "{date}.log"
+    log_date_format: str = "%d-%m-%Y"
+    log_time_format: str = "%d-%m-%Y %H:%M:%S"
     enable_csv_logs: bool = False
     enable_json_logs: bool = False
     
@@ -38,6 +42,7 @@ class SettingsManager:
             try:
                 with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
                     data = json.load(f)
+                    # Используем **data, чтобы игнорировать старые ключи и добавить новые
                     self._settings = AppSettings(**data)
             except Exception:
                 self._settings = AppSettings()

@@ -34,7 +34,7 @@ class TaskHistoryRecord:
 @dataclass
 class CatalogTask:
     """Текущая активная задача"""
-    id: str 
+    id: str
     catalog_type: str
     endpoint_catalog: str
     endpoint_file: str
