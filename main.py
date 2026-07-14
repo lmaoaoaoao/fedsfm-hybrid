@@ -6,24 +6,27 @@ from ui.main_window import MainWindow
 from ui.styles import GLOBAL_QSS
 
 def main():
-    # 1. Инициализация Qt приложения
     app = QApplication(sys.argv)
-    app.setStyle("Fusion") # Базовая тема
-    app.setStyleSheet(GLOBAL_QSS) # Наш минималистичный стиль
-    
-    # Критически важно: не закрывать приложение при скрытии главного окна
+    app.setStyle("Fusion")
+    app.setStyleSheet(GLOBAL_QSS)
     app.setQuitOnLastWindowClosed(False)
 
-    # 2. Инициализация Ядра и Сервисов
     model = AppModel()
     scheduler = TaskScheduler(model)
-    scheduler.start() # Запускаем фоновый планировщик
+    scheduler.start()
 
-    # 3. Инициализация UI
     window = MainWindow(model)
     window.show()
 
-    # 4. Запуск event loop
+    # Обработка изменения настроек (перезапуск планировщика)
+    def on_settings_changed():
+        from core.settings import get_settings
+        new_time = get_settings().schedule_time
+        scheduler.update_schedule(new_time)
+        model.add_log(f"Планировщик обновлен. Новое время запуска: {new_time}", "INFO")
+        
+    model.settings_changed.connect(on_settings_changed)
+
     sys.exit(app.exec())
 
 if __name__ == "__main__":

@@ -121,6 +121,11 @@ class LogManager:
             }
             with open(json_file, 'a', encoding='utf-8') as f:
                 f.write(json.dumps(log_entry, ensure_ascii=False) + "\n")
+                
+    def reload(self):
+        """Перезагрузка настроек логгера (применяет новые шаблоны и пути)"""
+        self._setup()
 
 def get_logger() -> LogManager:
     return LogManager()
+

@@ -1,8 +1,9 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QPushButton, QStackedWidget, QSystemTrayIcon, QLabel
+from PyQt6.QtWidgets import (QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QPushButton, 
+                             QStackedWidget, QSystemTrayIcon, QComboBox, QLabel)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QCloseEvent
 from core.models import AppModel
-from ui.pages import DashboardPage, SettingsPage
+from ui.pages import DashboardPage, SettingsPage, HistoryPage
 from ui.tray import TrayManager
 
 class MainWindow(QMainWindow):
@@ -13,7 +14,6 @@ class MainWindow(QMainWindow):
         self.resize(1000, 700)
         self.setMinimumSize(800, 600)
 
-        # Центральный виджет
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QHBoxLayout(central_widget)
@@ -28,10 +28,26 @@ class MainWindow(QMainWindow):
         sidebar_layout.setContentsMargins(16, 24, 16, 24)
         sidebar_layout.setSpacing(8)
 
-        # Логотип
         logo = QLabel("🛡️ FEDSFM")
         logo.setStyleSheet("font-size: 22px; font-weight: bold; color: #111827; padding: 12px 8px;")
         sidebar_layout.addWidget(logo)
+        
+        # Переключатель режимов
+        self.mode_combo = QComboBox()
+        self.mode_combo.addItems(["👤 Обычный режим", "⚙️ Режим программиста"])
+        self.mode_combo.setStyleSheet("""
+            QComboBox {
+                padding: 8px;
+                border: 1px solid #D1D5DB;
+                border-radius: 6px;
+                background: #FFFFFF;
+                font-weight: 500;
+            }
+            QComboBox:hover { border-color: #9CA3AF; }
+        """)
+        self.mode_combo.currentIndexChanged.connect(self.on_mode_changed)
+        sidebar_layout.addWidget(self.mode_combo)
+        
         sidebar_layout.addSpacing(16)
 
         # Кнопки навигации
@@ -39,21 +55,29 @@ class MainWindow(QMainWindow):
         self.btn_dashboard.clicked.connect(lambda: self.switch_page(0))
         sidebar_layout.addWidget(self.btn_dashboard)
 
-        self.btn_settings = self._create_nav_button("⚙️ Настройки", False)
-        self.btn_settings.clicked.connect(lambda: self.switch_page(1))
-        sidebar_layout.addWidget(self.btn_settings)
+        self.btn_history = self._create_nav_button("📜 История", False)
+        self.btn_history.clicked.connect(lambda: self.switch_page(1))
+        self.btn_history.setVisible(False) # Скрыто для обычного пользователя
+        sidebar_layout.addWidget(self.btn_history)
 
         sidebar_layout.addStretch()
+
+        self.btn_settings = self._create_nav_button("⚙️ Настройки", False)
+        self.btn_settings.clicked.connect(lambda: self.switch_page(2))
+        sidebar_layout.addWidget(self.btn_settings)
+
         main_layout.addWidget(self.sidebar)
 
-        # --- Область контента (Stacked Widget) ---
+        # --- Область контента ---
         self.stack = QStackedWidget()
         self.stack.setStyleSheet("background-color: #FFFFFF;")
         
         self.dashboard_page = DashboardPage(self.model)
+        self.history_page = HistoryPage(self.model)
         self.settings_page = SettingsPage(self.model)
         
         self.stack.addWidget(self.dashboard_page)
+        self.stack.addWidget(self.history_page)
         self.stack.addWidget(self.settings_page)
         
         main_layout.addWidget(self.stack, stretch=1)
@@ -73,19 +97,30 @@ class MainWindow(QMainWindow):
     def switch_page(self, index):
         self.stack.setCurrentIndex(index)
         
-        # Обновляем стили кнопок
-        is_dashboard = (index == 0)
-        self.btn_dashboard.setProperty("active", "true" if is_dashboard else "false")
-        self.btn_settings.setProperty("active", "false" if is_dashboard else "true")
+        # Сбрасываем стили всех кнопок
+        for btn in [self.btn_dashboard, self.btn_history, self.btn_settings]:
+            btn.setProperty("active", "false")
+            btn.style().unpolish(btn)
+            btn.style().polish(btn)
+            
+        # Активируем нужную кнопку
+        active_btn = [self.btn_dashboard, self.btn_history, self.btn_settings][index]
+        active_btn.setProperty("active", "true")
+        active_btn.style().unpolish(active_btn)
+        active_btn.style().polish(active_btn)
+
+    def on_mode_changed(self, index):
+        is_dev = (index == 1)
+        self.btn_history.setVisible(is_dev)
         
-        # Принудительно обновляем стили Qt
-        self.btn_dashboard.style().unpolish(self.btn_dashboard)
-        self.btn_dashboard.style().polish(self.btn_dashboard)
-        self.btn_settings.style().unpolish(self.btn_settings)
-        self.btn_settings.style().polish(self.btn_settings)
+        # Если скрыли кнопку истории и мы сейчас на ней, переключаем на дашборд
+        if not is_dev and self.stack.currentIndex() == 1:
+            self.switch_page(0)
+            
+        mode_name = "Программиста" if is_dev else "Обычный"
+        self.model.add_log(f"Режим интерфейса изменен на: {mode_name}", "INFO")
 
     def closeEvent(self, event: QCloseEvent):
-        """Перехватываем закрытие окна: сворачиваем в трей вместо выхода"""
         event.ignore()
         self.hide()
         self.tray.tray_icon.showMessage(
@@ -96,6 +131,5 @@ class MainWindow(QMainWindow):
         )
     
     def show_from_tray(self):
-        """Возврат окна из трея"""
         self.show()
         self.activateWindow()
