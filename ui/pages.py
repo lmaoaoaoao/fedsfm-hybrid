@@ -172,7 +172,14 @@ class SettingsPage(QWidget):
         self.load_settings()
 
     def init_ui(self):
-        layout = QVBoxLayout(self)
+        # ИСПРАВЛЕНИЕ: используем QScrollArea для предотвращения "скашивания"
+        from PyQt6.QtWidgets import QScrollArea
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setStyleSheet("border: none;")
+        
+        container = QWidget()
+        layout = QVBoxLayout(container)
         layout.setContentsMargins(32, 32, 32, 32)
         layout.setSpacing(24)
 
@@ -246,6 +253,13 @@ class SettingsPage(QWidget):
         layout.addLayout(btn_layout)
         layout.addStretch()
 
+        scroll.setWidget(container)
+        
+        # Основной layout страницы
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.addWidget(scroll)
+
     def load_settings(self):
         s = get_settings()
         self.download_dir_input.setText(s.download_dir)
@@ -272,13 +286,9 @@ class SettingsPage(QWidget):
         s.use_mock_api = self.mock_check.isChecked()
         s.is_test_contur = self.test_contur_check.isChecked()
         
-        # Сохраняем в config.json
         SettingsManager().save()
-        
-        # Перезагружаем логгер, чтобы он подхватил новые пути/шаблоны
         get_logger().reload()
         
-        # Уведомляем приложение об изменении настроек (для обновления планировщика)
         self.model.settings_changed.emit()
         
         QMessageBox.information(self, "Успех", "Настройки сохранены и применены!")

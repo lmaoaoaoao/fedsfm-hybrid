@@ -1,4 +1,9 @@
 GLOBAL_QSS = """
+QFormLayout QLabel {
+    min-width: 220px;
+    padding-right: 12px;
+}
+
 /* Базовые цвета и шрифты */
 QMainWindow, QWidget {
     background-color: #FFFFFF;
