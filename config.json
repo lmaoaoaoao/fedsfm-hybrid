@@ -1,0 +1,13 @@
+{
+    "download_dir": "downloads",
+    "schedule_time": "02:00",
+    "log_dir": "logs",
+    "log_filename_template": "{date}.log",
+    "log_date_format": "%d-%m-%Y",
+    "log_time_format": "%d-%m-%Y %H:%M:%S",
+    "enable_csv_logs": true,
+    "enable_json_logs": true,
+    "use_mock_api": true,
+    "fedsfm_base_url": "https://portal.fedsfm.ru:8081/Services/fedsfm-service",
+    "is_test_contur": true
+}
