@@ -1,25 +1,44 @@
 import sys
+import time
 from core.settings import get_settings, SettingsManager
 from core.logger import get_logger
+from core.models import AppModel
+from services.scheduler import TaskScheduler
 
 def main():
-    # 1. Инициализация настроек
     settings = get_settings()
-    print(f"✅ Настройки загружены. Папка логов: {settings.log_dir}")
-    
-    # 2. Инициализация логгера
     logger = get_logger()
     
-    # 3. Тестовые записи
-    logger.log("INFO", "Приложение FEDSFM Hybrid запущено.")
-    logger.log("INFO", f"Используется тестовый контур: {settings.is_test_contur}")
-    logger.log("WARN", "Это тестовое предупреждение для проверки цветов и ротации.")
+    logger.log("INFO", "=== Инициализация ядра FEDSFM Hybrid ===")
     
-    # Тестовая запись с доп. данными (для CSV/JSON)
-    logger.log("INFO", "Получен ID каталога TE21", extra_data={"idXml": "123e4567-e89b-12d3-a456-426614174000", "size": "4.2MB"})
+    # 1. Создаем модель
+    model = AppModel()
     
-    print("✅ Тестовые логи записаны. Проверьте папку 'logs'.")
-    print("🚀 Готово к Шагу 2. Нажмите Enter для выхода...")
+    # 2. Инициализируем планировщик (он автоматически подхватит настройки и создаст API клиент)
+    scheduler = TaskScheduler(model)
+    
+    logger.log("INFO", "Запуск тестового выполнения задач (Mock режим)...")
+    
+    # 3. Запускаем задачи вручную для проверки
+    scheduler.run_now()
+    
+    # 4. Даем время на завершение асинхронных операций (в реальном приложении это делает UI/Event Loop)
+    time.sleep(3)
+    
+    # 5. Выводим результаты
+    logger.log("INFO", "=== Результаты выполнения ===")
+    for task in model.tasks:
+        status = "✅ Успех" if task.last_history_record.success else f"❌ Ошибка: {task.last_history_record.error_message}"
+        logger.log("INFO", f"Задача {task.catalog_type}: {status}")
+        
+        # Демонстрация истории шагов
+        if task.last_history_record.steps:
+            logger.log("INFO", f"  -> Цепочка вызовов ({len(task.last_history_record.steps)} шагов):")
+            for step in task.last_history_record.steps:
+                logger.log("INFO", f"     [{step.stage}] {step.method} {step.url} -> {step.status_code}")
+
+    logger.log("INFO", "Тест завершен. Проверьте папку 'logs' и 'downloads'.")
+    print("\nНажмите Enter для выхода...")
     input()
 
 if __name__ == "__main__":
