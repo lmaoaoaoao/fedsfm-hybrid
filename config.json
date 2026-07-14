@@ -1,6 +1,8 @@
 {
     "download_dir": "downloads",
     "schedule_time": "02:00",
+    "username": "",
+    "password": "",
     "log_dir": "logs",
     "log_filename_template": "{date}.log",
     "log_date_format": "%d-%m-%Y",

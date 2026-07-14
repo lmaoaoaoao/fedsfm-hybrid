@@ -1,7 +1,9 @@
+from PyQt6.QtCore import QObject, pyqtSignal
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Optional
 from datetime import datetime
+from core.logger import get_logger
 
 class TaskStatus(Enum):
     QUEUED = "В очереди"
@@ -44,21 +46,24 @@ class CatalogTask:
     schedule: str
     last_history_record: Optional[TaskHistoryRecord] = None
 
-from PyQt6.QtCore import QObject, pyqtSignal
 
 class AppModel(QObject):
     """Центральная модель данных, связывающая UI, Настройки и Планировщик"""
+    
+    # Сигналы для обновления UI
     tasks_changed = pyqtSignal()
     history_changed = pyqtSignal()
     log_added = pyqtSignal(str, str)
     mode_changed = pyqtSignal(bool)
+    settings_changed = pyqtSignal()  # <--- ИСПРАВЛЕНИЕ 1: Сигнал для настроек
 
     def __init__(self):
         super().__init__()
         self.is_advanced_mode = False
         self.history_records: List[TaskHistoryRecord] = []
+        self.logger = get_logger()
         
-        # Инициализация тестовых задач (строго по эндпоинтам из документа)
+        # Инициализация тестовых задач
         self.tasks: List[CatalogTask] = [
             CatalogTask("1", "TE21", "suspect-catalogs/current-te21-catalog", "suspect-catalogs/current-te21-file", "te21_catalog.zip", TaskStatus.QUEUED, 0, "Ежедневно"),
             CatalogTask("2", "MVK", "suspect-catalogs/current-mvk-catalog", "suspect-catalogs/current-mvk-file-zip", "mvk_list.zip", TaskStatus.QUEUED, 0, "Ежедневно"),
@@ -69,3 +74,10 @@ class AppModel(QObject):
     def toggle_mode(self):
         self.is_advanced_mode = not self.is_advanced_mode
         self.mode_changed.emit(self.is_advanced_mode)
+
+    # <--- ИСПРАВЛЕНИЕ 2: Добавляем недостающий метод add_log
+    def add_log(self, message: str, level: str = "INFO"):
+        """Записывает лог в файл и отправляет сигнал в UI"""
+        self.logger.log(level, message)
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        self.log_added.emit(f"[{timestamp}] {message}", level)

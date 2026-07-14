@@ -34,7 +34,12 @@ class TaskScheduler:
 
     def update_schedule(self, new_time_str: str):
         """Обновляет время расписания на лету"""
-        self.settings.update(schedule_time=new_time_str)
+        from core.settings import SettingsManager  # Импортируем менеджер
+        
+        # Получаем экземпляр SettingsManager и обновляем через него
+        settings_manager = SettingsManager()
+        settings_manager.update(schedule_time=new_time_str)
+        
         self._setup_initial_schedule()
         self.logger.log("INFO", f"Расписание обновлено на {new_time_str}")
 
