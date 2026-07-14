@@ -66,3 +66,5 @@
 [14-07-2026 13:07:57] [INFO]      [GetCatalogID] POST https://portal.fedsfm.ru:8081/Services/fedsfm-service/test-contur/suspect-catalogs/current-un-catalog -> 200
 [14-07-2026 13:07:57] [INFO]      [DownloadFile] POST https://portal.fedsfm.ru:8081/Services/fedsfm-service/test-contur/suspect-catalogs/current-un-file -> 200
 [14-07-2026 13:07:57] [INFO] Тест завершен. Проверьте папку 'logs' и 'downloads'.
+[14-07-2026 13:14:27] [INFO] Планировщик настроен на ежедневный запуск в 02:00
+[14-07-2026 13:14:27] [INFO] Планировщик запущен.
